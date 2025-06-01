@@ -11,7 +11,7 @@ description='''
 Все игроки на сервере разделяют одну полоску здоровья.
 Урон, полученный одним игроком, влияет на всех остальных.
 '''
-authors="YourName"
+authors="JcukengesH"
 credits="Создано для Minecraft 1.16.5"
 
 [[dependencies.sharedhealthmod]]

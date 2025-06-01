@@ -1,19 +1,31 @@
 {
+  "minecraft:recipes/tools/flint_and_steel": {
+    "criteria": {
+      "has_obsidian": "2025-06-01 14:37:45 +0300"
+    },
+    "done": true
+  },
   "minecraft:recipes/combat/wooden_sword": {
     "criteria": {
       "has_stick": "2025-06-01 12:58:34 +0300"
     },
     "done": true
   },
-  "minecraft:recipes/redstone/oak_fence_gate": {
+  "minecraft:recipes/misc/iron_nugget_from_blasting": {
     "criteria": {
-      "has_planks": "2025-06-01 12:58:13 +0300"
+      "has_iron_sword": "2025-06-01 14:41:45 +0300"
     },
     "done": true
   },
   "minecraft:recipes/building_blocks/oak_planks": {
     "criteria": {
       "has_logs": "2025-06-01 12:57:59 +0300"
+    },
+    "done": true
+  },
+  "minecraft:recipes/redstone/oak_fence_gate": {
+    "criteria": {
+      "has_planks": "2025-06-01 12:58:13 +0300"
     },
     "done": true
   },
@@ -35,9 +47,34 @@
     },
     "done": true
   },
+  "minecraft:story/enter_the_nether": {
+    "criteria": {
+      "entered_nether": "2025-06-01 14:34:56 +0300"
+    },
+    "done": true
+  },
+  "minecraft:husbandry/balanced_diet": {
+    "criteria": {
+      "bread": "2025-06-01 14:39:29 +0300",
+      "enchanted_golden_apple": "2025-06-01 14:37:47 +0300"
+    },
+    "done": false
+  },
   "minecraft:recipes/tools/wooden_hoe": {
     "criteria": {
       "has_stick": "2025-06-01 12:58:34 +0300"
+    },
+    "done": true
+  },
+  "minecraft:recipes/misc/mojang_banner_pattern": {
+    "criteria": {
+      "has_enchanted_golden_apple": "2025-06-01 14:37:45 +0300"
+    },
+    "done": true
+  },
+  "minecraft:nether/root": {
+    "criteria": {
+      "entered_nether": "2025-06-01 14:34:56 +0300"
     },
     "done": true
   },
@@ -47,17 +84,28 @@
     },
     "done": true
   },
+  "minecraft:recipes/misc/iron_nugget_from_smelting": {
+    "criteria": {
+      "has_iron_sword": "2025-06-01 14:41:45 +0300"
+    },
+    "done": true
+  },
   "minecraft:adventure/adventuring_time": {
     "criteria": {
-      "minecraft:forest": "2025-06-01 12:57:51 +0300"
+      "minecraft:forest": "2025-06-01 12:57:51 +0300",
+      "minecraft:desert": "2025-06-01 14:50:21 +0300",
+      "minecraft:beach": "2025-06-01 14:54:58 +0300",
+      "minecraft:river": "2025-06-01 14:52:38 +0300",
+      "minecraft:savanna": "2025-06-01 14:46:33 +0300",
+      "minecraft:plains": "2025-06-01 14:46:19 +0300"
     },
     "done": false
   },
-  "minecraft:recipes/decorations/campfire": {
+  "minecraft:nether/explore_nether": {
     "criteria": {
-      "has_stick": "2025-06-01 12:58:34 +0300"
+      "minecraft:nether_wastes": "2025-06-01 14:34:56 +0300"
     },
-    "done": true
+    "done": false
   },
   "minecraft:recipes/misc/charcoal": {
     "criteria": {
@@ -68,6 +116,18 @@
   "minecraft:recipes/decorations/crafting_table": {
     "criteria": {
       "has_planks": "2025-06-01 12:58:13 +0300"
+    },
+    "done": true
+  },
+  "minecraft:recipes/decorations/campfire": {
+    "criteria": {
+      "has_stick": "2025-06-01 12:58:34 +0300"
+    },
+    "done": true
+  },
+  "minecraft:recipes/food/bread": {
+    "criteria": {
+      "has_wheat": "2025-06-01 14:37:45 +0300"
     },
     "done": true
   },
@@ -83,9 +143,21 @@
     },
     "done": true
   },
+  "minecraft:husbandry/root": {
+    "criteria": {
+      "consumed_item": "2025-06-01 14:37:47 +0300"
+    },
+    "done": true
+  },
   "minecraft:recipes/transportation/birch_boat": {
     "criteria": {
       "in_water": "2025-06-01 13:05:49 +0300"
+    },
+    "done": true
+  },
+  "minecraft:recipes/decorations/chest": {
+    "criteria": {
+      "has_lots_of_items": "2025-06-01 14:38:06 +0300"
     },
     "done": true
   },
@@ -107,6 +179,12 @@
     },
     "done": true
   },
+  "minecraft:recipes/decorations/enchanting_table": {
+    "criteria": {
+      "has_obsidian": "2025-06-01 14:37:45 +0300"
+    },
+    "done": true
+  },
   "minecraft:recipes/tools/wooden_shovel": {
     "criteria": {
       "has_stick": "2025-06-01 12:58:34 +0300"
@@ -119,15 +197,15 @@
     },
     "done": true
   },
-  "minecraft:recipes/transportation/acacia_boat": {
-    "criteria": {
-      "in_water": "2025-06-01 13:05:49 +0300"
-    },
-    "done": true
-  },
   "minecraft:recipes/decorations/oak_fence": {
     "criteria": {
       "has_planks": "2025-06-01 12:58:13 +0300"
+    },
+    "done": true
+  },
+  "minecraft:recipes/transportation/acacia_boat": {
+    "criteria": {
+      "in_water": "2025-06-01 13:05:49 +0300"
     },
     "done": true
   },
@@ -191,9 +269,21 @@
     },
     "done": true
   },
+  "minecraft:story/form_obsidian": {
+    "criteria": {
+      "obsidian": "2025-06-01 14:37:45 +0300"
+    },
+    "done": true
+  },
   "minecraft:recipes/transportation/spruce_boat": {
     "criteria": {
       "in_water": "2025-06-01 13:05:49 +0300"
+    },
+    "done": true
+  },
+  "minecraft:recipes/building_blocks/hay_block": {
+    "criteria": {
+      "has_wheat": "2025-06-01 14:37:45 +0300"
     },
     "done": true
   },
