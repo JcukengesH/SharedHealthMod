@@ -22,7 +22,8 @@ minecraft {
 
     runs {
         client {
-            workingDirectory project.file('run')
+            workingDirectory project.file('run/client')
+            taskName 'runClient1'
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
             mods {
@@ -62,7 +63,7 @@ jar {
         attributes([
                 "Specification-Title": "sharedhealthmod",
                 "Specification-Vendor": "sharedhealthmod",
-                "Specification-Version": "1",
+                "Specification-Version": "1.1",
                 "Implementation-Title": project.name,
                 "Implementation-Version": "${version}",
                 "Implementation-Vendor" :"sharedhealthmod",
