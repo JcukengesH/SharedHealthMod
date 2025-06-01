@@ -1,0 +1,29 @@
+modLoader="javafml"
+loaderVersion="[36,)"
+license="MIT"
+
+[[mods]]
+modId="sharedhealthmod"
+version="${file.jarVersion}"
+displayName="Shared Health Mod"
+description='''
+Мод для совместного здоровья игроков.
+Все игроки на сервере разделяют одну полоску здоровья.
+Урон, полученный одним игроком, влияет на всех остальных.
+'''
+authors="YourName"
+credits="Создано для Minecraft 1.16.5"
+
+[[dependencies.sharedhealthmod]]
+modId="forge"
+mandatory=true
+versionRange="[36.2.39,37)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.sharedhealthmod]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.16.5]"
+ordering="NONE"
+side="BOTH"
