@@ -15,8 +15,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Set;
 
 @Mod("sharedhealthmod")
@@ -25,8 +25,8 @@ public class SharedHealthMod {
     public static final String MODID = "sharedhealthmod";
     private static final Logger LOGGER = LogManager.getLogger();
 
-    // Для предотвращения рекурсивных вызовов
-    private static final Set<ServerPlayerEntity> processingPlayers = ConcurrentHashMap.newKeySet();
+    // Добавляем Set для отслеживания игроков в процессе обработки
+    private final Set<ServerPlayerEntity> processingPlayers = new HashSet<>();
 
     public SharedHealthMod() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
@@ -65,13 +65,23 @@ public class SharedHealthMod {
         // Отменяем стандартный урон
         event.setCanceled(true);
 
-        // Применяем урон ко всем игрокам
+        // Применяем урон ко всем игрокам напрямую
         for (ServerPlayerEntity player : players) {
             if (player.isAlive()) {
                 processingPlayers.add(player);
                 try {
-                    // Наносим урон через стандартный метод
-                    player.hurt(DamageSource.GENERIC, damage);
+                    float currentHealth = player.getHealth();
+                    float newHealth = currentHealth - damage;
+
+                    if (newHealth <= 0.0F) {
+                        // Убиваем игрока
+                        player.setHealth(0.0F);
+                        if (!player.isCreative() && !player.isSpectator()) {
+                            player.die(DamageSource.GENERIC);
+                        }
+                    } else {
+                        player.setHealth(newHealth);
+                    }
                 } finally {
                     processingPlayers.remove(player);
                 }
@@ -104,10 +114,10 @@ public class SharedHealthMod {
 
         float healAmount = event.getAmount();
 
-        // Отменяем стандартное лечение
+        // Отменяем стандартное лечение для оригинального игрока
         event.setCanceled(true);
 
-        // Лечим всех игроков
+        // Лечим всех игроков (включая того, кто изначально лечился)
         for (ServerPlayerEntity player : players) {
             if (player.isAlive()) {
                 processingPlayers.add(player);
