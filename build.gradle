@@ -1,41 +1,35 @@
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-    }
+plugins {
+    id 'net.minecraftforge.gradle' version '6.0.+'
+    id 'java'
 }
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'java'
 
-version = '1.0.0'
+version = '1.2.0'
 group = 'com.example.sharedhealthmod'
-archivesBaseName = 'sharedhealthmod'
+archivesBaseName = 'SharedHealth'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+// Java 17 для MC 1.20.1
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-    mappings channel: 'official', version: '1.16.5'
+    // Официальные маппинги для 1.20.1
+    mappings channel: 'official', version: '1.20.1'
 
     runs {
         client {
-            workingDirectory project.file('run')
+            workingDirectory project.file('run/client1')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-            mods {
-                sharedhealthmod {
-                    source sourceSets.main
-                }
-            }
-        }
+            property 'forge.enabledGameTestNamespaces', 'sharedhealthmod'
 
-        server {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
+            args '--username', 'Player1'  // Уникальное имя
+            jvmArgs(
+                    '-Dfml.readTimeout=180',
+                    '-Dforge.disableExitWorld=true',
+                    '-XX:+UseG1GC',
+                    '-Xmx2G',
+                    '-Dfml.port=25599'  // Уникальный порт
+            )
+
             mods {
                 sharedhealthmod {
                     source sourceSets.main
@@ -44,29 +38,43 @@ minecraft {
         }
     }
 }
+
+// Включаем сгенерированные ресурсы
+sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     maven {
         name = 'MinecraftForge'
-        url = 'https://files.minecraftforge.net/maven'
+        url = 'https://maven.minecraftforge.net'
     }
     mavenCentral()
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.2.39'
+    // Minecraft Forge для 1.20.1 - используем проверенную версию
+    minecraft 'net.minecraftforge:forge:1.20.1-47.2.0'
+
+    // Для разработки с JEI (раскомментируйте при необходимости)
+    // compileOnly fg.deobf("mezz.jei:jei-1.20.1-forge:15.2.0.27:api")
+    // runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-forge:15.2.0.27")
 }
 
+// Задачи для публикации jar
 jar {
     manifest {
         attributes([
-                "Specification-Title": "sharedhealthmod",
-                "Specification-Vendor": "sharedhealthmod",
-                "Specification-Version": "1",
-                "Implementation-Title": project.name,
-                "Implementation-Version": "${version}",
-                "Implementation-Vendor" :"sharedhealthmod",
+                "Specification-Title"     : "SharedHealth Mod",
+                "Specification-Vendor"   : "JcukengesH",
+                "Specification-Version"  : "1.3",
+                "Implementation-Title"   : project.name,
+                "Implementation-Version" : project.jar.archiveVersion,
+                "Implementation-Vendor"  : "JcukengesH",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
+}
+
+// Автоматическое обновление зависимостей
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }

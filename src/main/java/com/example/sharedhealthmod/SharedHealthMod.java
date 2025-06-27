@@ -1,156 +1,145 @@
 package com.example.sharedhealthmod;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.DamageSource;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingHealEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Set;
 
-@Mod("sharedhealthmod")
+@Mod("sharedhealth")
 public class SharedHealthMod {
 
-    public static final String MODID = "sharedhealthmod";
-    private static final Logger LOGGER = LogManager.getLogger();
+    public enum Mode {
+        SHARED,
+        INDIVIDUAL
+    }
 
-    // Для предотвращения рекурсивных вызовов
-    private static final Set<ServerPlayerEntity> processingPlayers = ConcurrentHashMap.newKeySet();
+    private static Mode currentMode = Mode.SHARED;
+    private static final Set<UUID> activeSyncs = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public SharedHealthMod() {
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    private void setup(final FMLCommonSetupEvent event) {
-        LOGGER.info("SharedHealthMod loaded!");
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGH)
+    @SubscribeEvent
     public void onPlayerDamage(LivingDamageEvent event) {
-        if (!(event.getEntityLiving() instanceof ServerPlayerEntity)) {
+        if (!(event.getEntity() instanceof ServerPlayer targetPlayer)) return;
+        if (targetPlayer.level().isClientSide()) return;
+        if (targetPlayer.isCreative() || targetPlayer.isSpectator()) return;
+        if (currentMode != Mode.SHARED) return;
+
+        if (activeSyncs.contains(targetPlayer.getUUID())) {
+            activeSyncs.remove(targetPlayer.getUUID());
             return;
         }
 
-        ServerPlayerEntity damagedPlayer = (ServerPlayerEntity) event.getEntityLiving();
+        float damageAmount = event.getAmount();
+        if (damageAmount <= 0) return;
 
-        // Предотвращаем рекурсию
-        if (processingPlayers.contains(damagedPlayer)) {
-            return;
-        }
-
-        MinecraftServer server = damagedPlayer.getServer();
-        if (server == null) return;
-
-        List<ServerPlayerEntity> players = server.getPlayerList().getPlayers();
-
-        // Если игрок один, обычное поведение
-        if (players.size() <= 1) {
-            return;
-        }
-
-        float damage = event.getAmount();
-
-        // Отменяем стандартный урон
-        event.setCanceled(true);
-
-        // Применяем урон ко всем игрокам
-        for (ServerPlayerEntity player : players) {
-            if (player.isAlive()) {
-                processingPlayers.add(player);
-                try {
-                    // Наносим урон через стандартный метод
-                    player.hurt(DamageSource.GENERIC, damage);
-                } finally {
-                    processingPlayers.remove(player);
-                }
-            }
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onPlayerHeal(LivingHealEvent event) {
-        if (!(event.getEntityLiving() instanceof ServerPlayerEntity)) {
-            return;
-        }
-
-        ServerPlayerEntity healedPlayer = (ServerPlayerEntity) event.getEntityLiving();
-
-        // Предотвращаем рекурсию
-        if (processingPlayers.contains(healedPlayer)) {
-            return;
-        }
-
-        MinecraftServer server = healedPlayer.getServer();
-        if (server == null) return;
-
-        List<ServerPlayerEntity> players = server.getPlayerList().getPlayers();
-
-        // Если игрок один, обычное поведение
-        if (players.size() <= 1) {
-            return;
-        }
-
-        float healAmount = event.getAmount();
-
-        // Отменяем стандартное лечение
-        event.setCanceled(true);
-
-        // Лечим всех игроков
-        for (ServerPlayerEntity player : players) {
-            if (player.isAlive()) {
-                processingPlayers.add(player);
-                try {
-                    player.heal(healAmount);
-                } finally {
-                    processingPlayers.remove(player);
-                }
-            }
+        for (ServerPlayer player : getEligiblePlayers(targetPlayer)) {
+            if (player == targetPlayer) continue;
+            activeSyncs.add(player.getUUID());
+            player.hurt(player.damageSources().generic(), damageAmount);
         }
     }
 
     @SubscribeEvent
-    public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (!(event.getPlayer() instanceof ServerPlayerEntity)) {
+    public void onPlayerHeal(LivingHealEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer targetPlayer)) return;
+        if (targetPlayer.level().isClientSide()) return;
+        if (targetPlayer.isCreative() || targetPlayer.isSpectator()) return;
+        if (currentMode != Mode.SHARED) return;
+
+        if (activeSyncs.contains(targetPlayer.getUUID())) {
+            activeSyncs.remove(targetPlayer.getUUID());
             return;
         }
 
-        ServerPlayerEntity joinedPlayer = (ServerPlayerEntity) event.getPlayer();
-        MinecraftServer server = joinedPlayer.getServer();
+        float healAmount = event.getAmount();
+        if (healAmount <= 0) return;
 
-        if (server == null) return;
-
-        List<ServerPlayerEntity> players = server.getPlayerList().getPlayers();
-
-        if (players.size() > 1) {
-            // Синхронизируем здоровье с другими игроками
-            float targetHealth = 0;
-            boolean foundAlivePlayer = false;
-
-            for (ServerPlayerEntity player : players) {
-                if (player != joinedPlayer && player.isAlive()) {
-                    targetHealth = player.getHealth();
-                    foundAlivePlayer = true;
-                    break;
-                }
-            }
-
-            if (foundAlivePlayer) {
-                joinedPlayer.setHealth(targetHealth);
-                LOGGER.info("Synchronized health for player {} with existing players: {}",
-                        joinedPlayer.getName().getString(), targetHealth);
-            }
+        for (ServerPlayer player : getEligiblePlayers(targetPlayer)) {
+            if (player == targetPlayer) continue;
+            activeSyncs.add(player.getUUID());
+            player.heal(healAmount);
         }
+    }
+
+    @SubscribeEvent
+    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer newPlayer)) return;
+        if (newPlayer.level().isClientSide()) return;
+        if (newPlayer.isCreative() || newPlayer.isSpectator()) return;
+        if (currentMode != Mode.SHARED) return;
+
+        for (ServerPlayer player : getEligiblePlayers(newPlayer)) {
+            if (player == newPlayer) continue;
+            newPlayer.setHealth(player.getHealth());
+            break;
+        }
+    }
+
+    @SubscribeEvent
+    public void onCommandRegister(RegisterCommandsEvent event) {
+        event.getDispatcher().register(Commands.literal("sh")
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.literal("mode")
+                        .then(Commands.literal("shared")
+                                .executes(ctx -> {
+                                    currentMode = Mode.SHARED;
+                                    sendFeedback(ctx.getSource(), "Shared health is ENABLED");
+                                    return 1;
+                                }))
+                        .then(Commands.literal("individual")
+                                .executes(ctx -> {
+                                    currentMode = Mode.INDIVIDUAL;
+                                    sendFeedback(ctx.getSource(), "Shared health is DISABLED");
+                                    return 1;
+                                }))
+                        .then(Commands.literal("sync")
+                                .executes(ctx -> {
+                                    if (currentMode == Mode.SHARED) {
+                                        syncAllPlayers(ctx.getSource());
+                                        sendFeedback(ctx.getSource(), "All health are synchronized");
+                                    } else {
+                                        sendFeedback(ctx.getSource(), "ERR: Shared health is DISABLED");
+                                    }
+                                    return 1;
+                                }))));
+    }
+
+    private List<ServerPlayer> getEligiblePlayers(ServerPlayer reference) {
+        return reference.getServer().getPlayerList().getPlayers().stream()
+                .filter(p -> !p.isCreative() && !p.isSpectator())
+                .toList();
+    }
+
+    private void syncAllPlayers(CommandSourceStack source) {
+        List<ServerPlayer> players = source.getLevel().players().stream()
+                .filter(p -> p instanceof ServerPlayer)
+                .map(p -> (ServerPlayer) p)
+                .filter(p -> !p.isCreative() && !p.isSpectator())
+                .toList();
+
+        if (players.isEmpty()) return;
+
+        float health = players.get(0).getHealth();
+        for (int i = 1; i < players.size(); i++) {
+            players.get(i).setHealth(health);
+        }
+    }
+
+    private void sendFeedback(CommandSourceStack source, String message) {
+        source.sendSuccess(() -> Component.literal(message), false);
     }
 }
