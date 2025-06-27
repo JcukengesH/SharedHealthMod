@@ -6,9 +6,11 @@ license="MIT"
 modId="sharedhealth"
 version="1.3.0"
 displayName="Shared Health Mod"
+
 description='Shared health system for multiplayer'
 authors="JcukengesH"
 credits="JcukengesH"
+
 
 [[dependencies.sharedhealthmod]]
 modId="forge"

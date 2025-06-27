@@ -1,5 +1,6 @@
 package com.example.sharedhealthmod;
 
+
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraftforge.common.MinecraftForge;
@@ -16,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 @Mod("sharedhealth")
 public class SharedHealthMod {
 
@@ -24,12 +26,14 @@ public class SharedHealthMod {
         INDIVIDUAL
     }
 
+
     private static Mode currentMode = Mode.SHARED;
     private static final Set<UUID> activeSyncs = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public SharedHealthMod() {
         MinecraftForge.EVENT_BUS.register(this);
     }
+
 
     @SubscribeEvent
     public void onPlayerDamage(LivingDamageEvent event) {
@@ -45,6 +49,7 @@ public class SharedHealthMod {
 
         float damageAmount = event.getAmount();
         if (damageAmount <= 0) return;
+
 
         for (ServerPlayer player : getEligiblePlayers(targetPlayer)) {
             if (player == targetPlayer) continue;
@@ -66,12 +71,14 @@ public class SharedHealthMod {
         }
 
         float healAmount = event.getAmount();
+
         if (healAmount <= 0) return;
 
         for (ServerPlayer player : getEligiblePlayers(targetPlayer)) {
             if (player == targetPlayer) continue;
             activeSyncs.add(player.getUUID());
             player.heal(healAmount);
+
         }
     }
 
@@ -124,6 +131,7 @@ public class SharedHealthMod {
                 .toList();
     }
 
+
     private void syncAllPlayers(CommandSourceStack source) {
         List<ServerPlayer> players = source.getLevel().players().stream()
                 .filter(p -> p instanceof ServerPlayer)
@@ -137,6 +145,13 @@ public class SharedHealthMod {
         for (int i = 1; i < players.size(); i++) {
             players.get(i).setHealth(health);
         }
+
+        // Уведомление игроку о текущем режиме
+        joinedPlayer.sendMessage(
+                new StringTextComponent("[SharedHealth] Текущий режим: " + currentMode.getName() + " - " + currentMode.getDescription())
+                        .withStyle(TextFormatting.AQUA),
+                joinedPlayer.getGameProfile().getId()
+        );
     }
 
     private void sendFeedback(CommandSourceStack source, String message) {

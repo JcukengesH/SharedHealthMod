@@ -16,6 +16,7 @@ minecraft {
 
     runs {
         client {
+
             workingDirectory project.file('run/client1')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
@@ -69,6 +70,7 @@ jar {
                 "Implementation-Title"   : project.name,
                 "Implementation-Version" : project.jar.archiveVersion,
                 "Implementation-Vendor"  : "JcukengesH",
+
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
